@@ -1,0 +1,158 @@
+import tensorflow as tf
+import numpy as np
+import pickle  # For saving the model
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.utils import to_categorical
+
+# Data preprocessing
+# List of news and statements
+sentences = [
+    "Problems in the company",
+    "mobile declining",
+    "Activision Blizzard collapsed by 14% due to the transfer of games.",
+    "The company has fallen",
+    "The company's stock price has fallen",
+    "Activision employees staged a strike demanding the resignation of the CEO",
+    "Shares of Blizzard company has fallen in price",
+    "New M&A rules likely to delay deals by months, add significant costs",
+    "Videogame sales fall for sixth straight month",
+    "Activision Blizzard misses by $0.03, misses on revenue",
+    "Videogame sales fall for years",
+    "Videogame sales fall for second month in December - but wrap a record year",
+    "March videogame sales fall by double digits",
+    "March videogame sales fall by double digits;",
+    "Videogame sales fall despite high-profile releases",
+    "Videogame sales fall 8% in April, though consoles rebound",
+    "Videogame sales fall again in April despite more console gains",
+    "sales fall by double digits",
+    "Quarter trails last year's",
+    "Videogame sales fall",
+    "sales fall",
+    "weak month",
+    "weak sales",
+    "weak",
+    "weak start for Activision",
+    "Weak August video game sales",
+    "Channel check on August video game sales looks weak",
+    "Weak August video game sales (software +13% Y/Y; hardware +3%) concern investors. Fallout: ATVI...",
+
+    "New console launches pace a record $7B November for videogame sales",
+    "record videogame sales",
+    "Activision Blizzard rises as Baird boosts estimates on 'strong' Diablo IV launch",
+    "Activision Blizzard has announced the release of the next Call of Duty game",
+    "Activision Blizzard Shares Soar Nearly 40% on Microsoft Deal",
+    "Proletariat Studio joined Blizzard Entertainment",
+    "Take-Two and Electronic Arts did not disappoint investors.",
+    "The company announced record-breaking earnings",
+    "good news",
+    "sales rise",
+    "+",
+    "Notable earnings",
+    "Destiny release brings in $500M for Activision",
+    "videogame sales +14% as preview of new-generation holiday season",
+    "Videogame sales speed up, rising for sixth month aided by hardware and 'Far Cry 6'",
+    "Videogame sales accelerate again in August, up 37%",
+    "Videogame sales rise 18% in April with broad gains as Sony scores",
+    "Videogame sales rise for fifth straight month, paced by consoles",
+    "Videogame sales rise 10% vs. 2020 in third straight month of gains",
+    "Activision gains again, up 11% as UK looks to pause trial over Microsoft purchase (updated)",
+    "Activision jumps as court allows Microsoft's $69B acquisition to go forward",
+    "Nintendo's 'Zelda' pushes videogame sales to healthy rebound in May",
+    "UK court filing may be positive for Microsoft deal for Activision - report",
+    "FTC hearing to block Microsoft $69B acquisition of Activision concludes",
+    "Microsoft boosting prices on Game Pass subscription, Series X console",
+    "co-chairman Brian Kelly has received a new contract that will pay a $15M",
+    
+    "In Britain, Microsoft is investigating the deal to buy Activision Blizzard",
+    "The growth of the Moscow stock Exchange index, the collapse of Roblox shares",
+    "Buffett bought Activision Blizzard shares for $1 billion before the deal with Microsoft",
+    "Electronic Arts will buy the creator of the game about Kim Kardashian Glu Mobile",
+    "Price reamins on the same level",
+    "Activision downgraded at Raymond James as Microsoft deal likely to close soon",
+    "Microsoft offers to make small divestiture to meet UK objections on Activision - CNBC",
+    "iRobot, Seagen, Horizon gain amid Microsoft win in Activision case",
+    "Court ruling in Activision, Microsoft may come Wednesday or Thursday - report",
+    "Citi screens for most crowded short stocks with new model",
+    "Latest tech crackdown sees Facebook and Instagram pull news in Canada",
+    "Microsoft set to battle with FTC in court over $69B Activision deal (update)",
+    "J.P. Morgan Neutral on Take-Two, maintains Activision rating seeing enticing risk/reward",
+    "Developer leaves the company",
+    "Somebody is leaving the company",
+    "Game Developer — Overwatch 2 VP Jon Spector is leaving Blizzard Entertainment",
+    "He left the company",
+    "Microsoft barred by UK regulator from increasing Activision stake",
+    "EA -7.7% after bookings cut, while peers hold steady",
+    "In a week of big premarket moves, Friday restores normalcy",
+    "EA launches 'Star Wars: Battlefront' to mixed reviews",
+    "December videogame sales slightly off as console transition continues",
+    "report",
+    "For every $2 U.S. consumers spent on traditional video game products in October, they spent...",
+    "More on Activision: Q4 guidance is for revenue of $2.41B and EPS of $0.70, above a consensus of..."
+    ]
+
+
+for k in range(len(sentences)):
+    sentences[k] = sentences[k].lower()
+
+# Creating a list of labels for training 
+# 1: Bad news, 2: Good news, 0: Unknown news
+labels = list()
+for i in range(28):
+    labels.append(1)
+for i in range(26):
+    labels.append(2)
+for i in range(25):
+    labels.append(0)
+
+# Tokenization and Sequencing
+tokenizer = Tokenizer()
+tokenizer.fit_on_texts(sentences)
+word_index = tokenizer.word_index
+sequences = tokenizer.texts_to_sequences(sentences)
+
+max_len = max(len(seq) for seq in sequences)
+padded_sequences = pad_sequences(sequences, maxlen=max_len)
+
+# Model architecture
+model = tf.keras.Sequential([
+    # Embedding layer to convert words to dense vectors
+    tf.keras.layers.Embedding(len(word_index) + 1, 16, input_length=max_len),
+    # Global Average Pooling layer to reduce dimensionality
+    tf.keras.layers.GlobalAveragePooling1D(),
+    # Dense layer with ReLU activation
+    tf.keras.layers.Dense(64, activation='relu'),
+    # Output layer with 3 units and softmax activation for multi-class classification
+    tf.keras.layers.Dense(3, activation='softmax')  # Change the output dimension
+])
+
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])  # Change the loss function
+
+# Model training
+labels = to_categorical(labels, num_classes=3)  # Convert labels to one-hot representation
+model.fit(padded_sequences, labels, batch_size=32, epochs=500)
+
+# Saving model
+with open('model.pkl', 'wb') as f:
+    pickle.dump(model, f)
+
+# Classify new sentences
+test_sentences = ["+",
+                  "Videogame sales fall",
+                  "March videogame sales fall by double digits; Quarter trails last year's",
+                  "Channel check on August video game sales looks weak"
+]
+test_sequences = tokenizer.texts_to_sequences(test_sentences)
+test_padded = pad_sequences(test_sequences, maxlen=max_len)
+predictions = model.predict(test_padded)
+
+for sentence, prediction in zip(test_sentences, predictions):
+    print(f"Sentence: {sentence}")
+    print("Prediction:", prediction)
+    predicted_label = np.argmax(prediction)  # Take the index of the highest prediction
+    if predicted_label == 1:
+        print("Label: Bad news\n")
+    elif predicted_label == 2:
+        print("Label: Good news\n")
+    else:
+        print("Label: Unknown news\n")
