@@ -1,0 +1,139 @@
+import csv
+import tensorflow as tf
+import numpy as np
+import pickle  # For saving the model
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+# Load the pre-trained model
+with open('model.pkl', 'rb') as f:
+    model = pickle.load(f)
+
+# Define a list of sentences (news or statements)
+sentences = [
+    "Problems in the company",
+    "mobile declining",
+    "Activision Blizzard collapsed by 14% due to the transfer of games.",
+    "The company has fallen",
+    "The company's stock price has fallen",
+    "Activision employees staged a strike demanding the resignation of the CEO",
+    "Shares of Blizzard company has fallen in price",
+    "New M&A rules likely to delay deals by months, add significant costs",
+    "Videogame sales fall for sixth straight month",
+    "Activision Blizzard misses by $0.03, misses on revenue",
+    "Videogame sales fall for years",
+    "Videogame sales fall for second month in December - but wrap a record year",
+    "March videogame sales fall by double digits",
+    "March videogame sales fall by double digits;",
+    "Videogame sales fall despite high-profile releases",
+    "Videogame sales fall 8% in April, though consoles rebound",
+    "Videogame sales fall again in April despite more console gains",
+    "sales fall by double digits",
+    "Quarter trails last year's",
+    "Videogame sales fall",
+    "sales fall",
+    "weak month",
+    "weak sales",
+    "weak",
+    "weak start for Activision",
+    "Weak August video game sales",
+    "Channel check on August video game sales looks weak",
+    "Weak August video game sales (software +13% Y/Y; hardware +3%) concern investors. Fallout: ATVI...",
+
+    "New console launches pace a record $7B November for videogame sales",
+    "record videogame sales",
+    "Activision Blizzard rises as Baird boosts estimates on 'strong' Diablo IV launch",
+    "Activision Blizzard has announced the release of the next Call of Duty game",
+    "Activision Blizzard Shares Soar Nearly 40% on Microsoft Deal",
+    "Proletariat Studio joined Blizzard Entertainment",
+    "Take-Two and Electronic Arts did not disappoint investors.",
+    "The company announced record-breaking earnings",
+    "good news",
+    "sales rise",
+    "+",
+    "Notable earnings",
+    "Destiny release brings in $500M for Activision",
+    "videogame sales +14% as preview of new-generation holiday season",
+    "Videogame sales speed up, rising for sixth month aided by hardware and 'Far Cry 6'",
+    "Videogame sales accelerate again in August, up 37%",
+    "Videogame sales rise 18% in April with broad gains as Sony scores",
+    "Videogame sales rise for fifth straight month, paced by consoles",
+    "Videogame sales rise 10% vs. 2020 in third straight month of gains",
+    "Activision gains again, up 11% as UK looks to pause trial over Microsoft purchase (updated)",
+    "Activision jumps as court allows Microsoft's $69B acquisition to go forward",
+    "Nintendo's 'Zelda' pushes videogame sales to healthy rebound in May",
+    "UK court filing may be positive for Microsoft deal for Activision - report",
+    "FTC hearing to block Microsoft $69B acquisition of Activision concludes",
+    "Microsoft boosting prices on Game Pass subscription, Series X console",
+    "co-chairman Brian Kelly has received a new contract that will pay a $15M",
+    
+    "In Britain, Microsoft is investigating the deal to buy Activision Blizzard",
+    "The growth of the Moscow stock Exchange index, the collapse of Roblox shares",
+    "Buffett bought Activision Blizzard shares for $1 billion before the deal with Microsoft",
+    "Electronic Arts will buy the creator of the game about Kim Kardashian Glu Mobile",
+    "Price reamins on the same level",
+    "Activision downgraded at Raymond James as Microsoft deal likely to close soon",
+    "Microsoft offers to make small divestiture to meet UK objections on Activision - CNBC",
+    "iRobot, Seagen, Horizon gain amid Microsoft win in Activision case",
+    "Court ruling in Activision, Microsoft may come Wednesday or Thursday - report",
+    "Citi screens for most crowded short stocks with new model",
+    "Latest tech crackdown sees Facebook and Instagram pull news in Canada",
+    "Microsoft set to battle with FTC in court over $69B Activision deal (update)",
+    "J.P. Morgan Neutral on Take-Two, maintains Activision rating seeing enticing risk/reward",
+    "Developer leaves the company",
+    "Somebody is leaving the company",
+    "Game Developer — Overwatch 2 VP Jon Spector is leaving Blizzard Entertainment",
+    "He left the company",
+    "Microsoft barred by UK regulator from increasing Activision stake",
+    "EA -7.7% after bookings cut, while peers hold steady",
+    "In a week of big premarket moves, Friday restores normalcy",
+    "EA launches 'Star Wars: Battlefront' to mixed reviews",
+    "December videogame sales slightly off as console transition continues",
+    "report",
+    "For every $2 U.S. consumers spent on traditional video game products in October, they spent...",
+    "More on Activision: Q4 guidance is for revenue of $2.41B and EPS of $0.70, above a consensus of..."
+    ]
+
+
+# Preprocess the sentences by converting them to lowercase
+for k in range(len(sentences)):
+    sentences[k] = sentences[k].lower()
+
+# Create a tokenizer and fit it on the sentences
+tokenizer = Tokenizer()
+tokenizer.fit_on_texts(sentences)
+
+# Read data from a CSV file
+with open("data.csv", encoding='utf-8') as r_file:
+    file_reader = csv.DictReader(r_file)
+    list_of_news = list()
+    list_of_dates = list()
+    
+    # Extract news and dates from the CSV file
+    for row in file_reader:
+        list_of_dates.append(str(row["date"]))
+        list_of_news.append(str(row["news"]))
+
+# Tokenize and pad the news from the CSV file
+test_sequences = tokenizer.texts_to_sequences(list_of_news)
+test_padded = pad_sequences(test_sequences, maxlen=20)
+
+# Make predictions using the pre-trained model
+predictions = model.predict(test_padded)
+
+# Write the results to a new CSV file
+with open("checked_news.csv", mode="w", encoding='utf-8') as w_file:
+    names = ["date", "news", "characteristic"]
+    file_writer = csv.DictWriter(w_file, delimiter=",", lineterminator="\r", fieldnames=names)
+    file_writer.writeheader()
+    count = 0
+
+    for new, prediction in zip(list_of_news, predictions):
+        predicted_label = np.argmax(prediction)  # Take the index of the highest prediction
+        if predicted_label == 1:
+            file_writer.writerow({"date": list_of_dates[count], "news": new, "characteristic": "-"})
+        elif predicted_label == 2:
+            file_writer.writerow({"date": list_of_dates[count], "news": new, "characteristic": "+"})
+        else:
+            file_writer.writerow({"date": list_of_dates[count], "news": new, "characteristic": "?"})
+        count += 1
