@@ -136,7 +136,7 @@ model.fit(padded_sequences, labels, batch_size=32, epochs=500)
 with open('model.pkl', 'wb') as f:
     pickle.dump(model, f)
 
-# Classify new sentences
+# Classify test sentences
 test_sentences = ["+",
                   "Videogame sales fall",
                   "March videogame sales fall by double digits; Quarter trails last year's",
