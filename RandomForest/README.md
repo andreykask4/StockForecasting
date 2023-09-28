@@ -1,4 +1,5 @@
 All instructions are given in the jupyter notebook, but to clarify the code:
+
 1)Installs required Python packages: yfinance and pandas_ta.
 
 2)Imports necessary Python libraries, including yfinance, pandas, pandas_ta, os, and matplotlib.pyplot.
