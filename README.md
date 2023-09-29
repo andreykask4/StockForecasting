@@ -6,8 +6,10 @@ Blizzard
 
 In this project we implemented:
 
-parser and NLP which label news for training in the model.
+For technical analysis: parser and NLP model, which labels news for training.
 
-Models Implemented: LSTM, Prophet, Random Forest.
+For technical analysis: LSTM, Prophet, Random Forest.
 
-For futher info check folders
+Combined model to predict stock closing price based on news and technical analysis.
+
+For futher info check folders.
