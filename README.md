@@ -13,3 +13,6 @@ For technical analysis: LSTM, Prophet, Random Forest.
 Combined model to predict stock closing price based on news and technical analysis.
 
 For futher info check folders.
+
+Parsing, NN - done by Khaibrahmanov T.
+NLP, Random Forest - done by Skorodumov A.
