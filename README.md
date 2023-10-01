@@ -14,6 +14,6 @@ Combined model to predict stock closing price based on news and technical analys
 
 For futher info check folders.
 
-Parsing, NN - done by Khaibrahmanov T.
+Parsing, NN - done by Khaibrakhmanov T.
 
 NLP, Random Forest - done by Skorodumov A.
